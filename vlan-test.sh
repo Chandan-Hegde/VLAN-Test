@@ -33,7 +33,7 @@ do
 #List of vlans that are already configured in the test machine that is residing remotely
       vlan_interface_list_remote=$(ssh root@${TEST_VM} "nmcli connection show | grep vlan | cut -d ' ' -f 1 | cut -d '.' -f 2")
 
-#fetch the vlan list from ./wdc_vlan_list CSV file
+#fetch the vlan list from ./<sitename>_vlan_list CSV file
       vlan_list=$(cat ${VLAN_CFG_FILE}  | cut -d "," -f 1)
 
 #Get the default interface like this. This was the most difficult line to write. you need to login to remote machine for this
@@ -59,7 +59,7 @@ do
              ssh root@${TEST_VM} "systemctl restart network"
 
 #Now we need to invoke the script to add the routes and the rules which is there within the test machine. This I do only when I am creating that interface
-             ssh root@${TEST_VM} "~/scripts/create-route-rule.sh"
+             ssh root@${TEST_VM} "./create-route-rule.sh"
 
             fi
 
@@ -67,14 +67,15 @@ do
 
 
 #Will also ping the gateway from respective interfaces to make sure that MAC learnig happens
+#Include the ping-vlan-gateway.sh script  in the test machine for this
       echo "###This is from within the test machine to respective gateway to make the MAC learning done"
-      ssh root@${TEST_VM} "~/scripts/ping-vlan-gateway.sh"
+      ssh root@${TEST_VM} "./ping-vlan-gateway.sh"
 
 
 #Now test the connectivity
       echo ""
       echo "${green}###Final report for to know if the vlan tagging is done for the uplinks vmnic teamed to  ${pg}###"
-      vlan_ips=$(cat wdc_vlan_list  | cut -d "," -f 1,2)
+      vlan_ips=$(cat ${VLAN_CFG_FILE} | cut -d "," -f 1,2)
 
       for vlan_ip in ${vlan_ips}
       do
